@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>魔视智能 · 知识库检索系统</title>
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <img class="brand-logo" src="logo.png" alt="魔视智能" onerror="this.style.display='none'" />
+      <div class="brand-text">
+        <div class="brand-title">魔视智能</div>
+        <div class="brand-sub">知识库检索系统</div>
+      </div>
+    </div>
+    <div class="header-group">
+      <div class="field">
+        <label>Base URL</label>
+        <input type="url" id="baseUrl" placeholder="http://10.24.2.10:20080" value="http://10.24.2.10:20080" />
+      </div>
+      <div class="field">
+        <label>API Key</label>
+        <input type="password" id="apiKey" placeholder="ragflow-xxx" value="ragflow-ochxzkekxf2vIt_RHU2nRoTmuI5bZMCbprq0AnT7GIg" />
+        <span class="toggle-pwd" id="togglePwd" title="显示/隐藏">显示</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-test" id="btnApply">应用配置</button>
+      <button type="button" class="btn-test secondary" id="btnTest">连接测试</button>
+      <span class="status-dot" id="statusDot" title="未连接"></span>
+      <span class="hint-api">API Key 会保存在浏览器本地</span>
+    </div>
+  </header>
+
+  <div class="main-wrap">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-tabs">
+        <button type="button" data-tab="chat" class="active">会话</button>
+        <button type="button" data-tab="kb">知识库</button>
+      </div>
+      <div class="sidebar-content">
+        <div id="panelChat" class="sidebar-panel">
+          <div class="panel-header">
+            <button type="button" class="btn-new" id="btnNewChat">+ 新建会话</button>
+          </div>
+          <ul class="sidebar-list panel-list" id="chatList"></ul>
+        </div>
+        <div id="panelKb" class="sidebar-panel" style="display:none;">
+          <div class="panel-header">
+            <button type="button" class="btn-new" id="btnNewKb">+ 新建知识库</button>
+          </div>
+          <ul class="sidebar-list panel-list" id="kbList"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+        <div id="welcome" class="empty-state">请从左侧选择会话或知识库</div>
+
+        <div id="chatView" class="chat-view">
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrap">
+              <textarea id="chatInput" placeholder="输入消息，Enter 发送，Shift+Enter 换行" rows="1"></textarea>
+              <button type="button" class="primary" id="btnSend">发送</button>
+            </div>
+            <div class="chat-actions">
+              <button type="button" id="btnClearHistory">清空历史</button>
+            </div>
+            <details class="chat-settings">
+              <summary>对话设置</summary>
+              <label>系统提示词</label>
+              <textarea id="systemPrompt" placeholder="可选"></textarea>
+              <label><input type="checkbox" id="optReference" checked /> 检索知识库</label>
+              <label><input type="checkbox" id="optRefMeta" checked /> 显示引用来源</label>
+            </details>
+          </div>
+        </div>
+
+        <div id="docView" class="doc-view">
+          <div class="doc-info-card" id="docInfoCard"></div>
+          <div class="chat-actions" style="margin-bottom:8px">
+            <button type="button" id="btnBatchParse">批量解析</button>
+            <button type="button" id="btnBatchDel">批量删除</button>
+          </div>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="docSelectAll" /></th>
+                  <th>文档名</th>
+                  <th>大小</th>
+                  <th>解析状态</th>
+                  <th>上传时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="docTableBody"></tbody>
+            </table>
+          </div>
+          <div class="upload-zone" id="uploadZone">
+            拖拽文件到此处，或点击选择（支持多选）
+            <div class="hint">支持 PDF / Word / TXT / Markdown / Excel / PPT / 图片</div>
+            <input type="file" id="fileInput" multiple style="display:none" />
+          </div>
+          <div class="progress-bar" id="uploadProgressWrap" style="display:none;">
+            <div class="fill" id="uploadProgress" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">魔视智能 · 知识库检索系统 · 请选择会话或知识库开始使用</footer>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalEl">
+      <h3 id="modalTitle">标题</h3>
+      <div id="modalBody"></div>
+      <div class="actions">
+        <button type="button" class="btn-cancel" id="modalCancel">取消</button>
+        <button type="button" class="btn-ok" id="modalOk">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="ref-tooltip" id="refTooltip"></div>
+
+  <script src="js/state.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/documents.js"></script>
+  <script src="js/chats.js"></script>
+  <script src="js/datasets.js"></script>
+  <script src="js/connection.js"></script>
+  <script src="js/chat-view.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -627,7 +627,8 @@ async def async_chat(dialog, messages, stream=True, **kwargs):
 
         if knowledges and (prompt_config.get("quote", True) and kwargs.get("quote", True)):
             idx = set([])
-            if embd_mdl and not re.search(r"\[ID:([0-9]+)\]", answer):
+            # 仅使用提示词引用方式，不调用 insert_citations 自动插入
+            if False and embd_mdl and not re.search(r"\[ID:([0-9]+)\]", answer):
                 answer, idx = retriever.insert_citations(
                     answer,
                     [ck["content_ltks"] for ck in kbinfos["chunks"]],

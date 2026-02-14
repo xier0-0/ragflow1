@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAGFlow 知识库上传页面</title>
+  <style>
+    :root {
+      --bg: #0f0f14;
+      --surface: #18181f;
+      --surface-light: #23232c;
+      --border: #2a2a35;
+      --text: #e4e4e9;
+      --muted: #8b8b9a;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+    .sub { font-size: 0.8rem; color: var(--muted); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+    input[type="text"],
+    input[type="url"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px 11px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    textarea { min-height: 60px; resize: vertical; }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-bottom: 8px;
+      transition: background 0.2s;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    button.secondary:hover { background: var(--border); }
+
+    .status {
+      font-size: 0.8rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 6px;
+      white-space: pre-wrap;
+    }
+    .status.info { background: rgba(99,102,241,0.12); color: var(--accent); }
+    .status.success { background: rgba(34,197,94,0.12); color: var(--success); }
+    .status.error { background: rgba(239,68,68,0.12); color: var(--error); }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .row > * { flex: 1; }
+    .row > button { flex: 0 0 auto; }
+
+    .log {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.8rem;
+      max-height: 260px;
+      overflow-y: auto;
+      margin-top: 8px;
+      white-space: pre-wrap;
+    }
+    .log-entry-ok { color: var(--success); }
+    .log-entry-err { color: var(--error); }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RAGFlow 知识库上传页面 <span class="sub">（针对单个知识库批量上传文件）</span></h1>
+
+    <div class="card">
+      <h2>1. 基本配置</h2>
+      <label>服务地址 (Base URL)</label>
+      <input type="url" id="baseUrl" placeholder="例如: https://demo.ragflow.io 或 http://localhost:9380" value="http://10.24.2.10:20080" />
+
+      <label>API Key</label>
+      <input type="text" id="apiKey" placeholder="ragflow-xxx" value="ragflow-ochxzkekxf2vIt_RHU2nRoTmuI5bZMCbprq0AnT7GIg" />
+
+      <div class="hint">
+        如果你已经在对话页面配置过这两个值，可以保持一致，这里直接复用。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. 选择或创建知识库</h2>
+      <div class="row">
+        <div>
+          <label>现有知识库</label>
+          <select id="datasetSelect">
+            <option value="">-- 请点击右侧按钮获取列表 --</option>
+          </select>
+        </div>
+        <button type="button" id="btnFetchDatasets" class="secondary">刷新列表</button>
+      </div>
+
+      <details>
+        <summary style="font-size:0.8rem; color:var(--muted); cursor:pointer; margin-bottom:6px;">
+          或者创建一个新的知识库
+        </summary>
+        <label>新知识库名称</label>
+        <input type="text" id="newDatasetName" placeholder="例如：AI 重要论文" />
+
+        <label>描述（可选）</label>
+        <textarea id="newDatasetDesc" placeholder="对知识库内容的简要说明"></textarea>
+
+        <div class="row">
+          <div>
+            <label>切分策略 (chunk_method)</label>
+            <select id="newDatasetChunkMethod">
+              <option value="">默认 naive</option>
+              <option value="naive">naive（通用）</option>
+              <option value="paper">paper（论文）</option>
+              <option value="book">book（书籍）</option>
+              <option value="presentation">presentation（PPT）</option>
+              <option value="table">table（表格）</option>
+              <option value="qa">qa（问答）</option>
+            </select>
+          </div>
+          <div>
+            <label>权限 (permission)</label>
+            <select id="newDatasetPermission">
+              <option value="me">me（仅自己）</option>
+              <option value="team">team（团队共享）</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" id="btnCreateDataset">创建知识库</button>
+      </details>
+
+      <div id="datasetStatus" class="status info" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>3. 上传文件到指定知识库</h2>
+
+      <label>目标知识库 ID（自动随下拉选择变化）</label>
+      <input type="text" id="targetDatasetId" placeholder="请选择上面的知识库，或手动填写 dataset_id" />
+
+      <label>选择文件（支持多选，建议 PDF / Word / 图片 等）</label>
+      <input type="file" id="fileInput" multiple />
+      <div class="hint">
+        上传后文档会<strong>自动进入解析与切分流程</strong>，无需额外操作。若文件较多，建议分批上传。
+      </div>
+
+      <label>可选：为本批文件设置统一标签（仅用于日志，当前版本接口不使用该字段）</label>
+      <input type="text" id="batchTag" placeholder="例如：atari-rl, arxiv-2013" />
+
+      <label>可选：自定义 parser_config（JSON），当前 SDK 上传接口不直接接受该字段，如有需要可扩展后端</label>
+      <textarea id="parserConfig" placeholder='例如：{"chunk_token_num": 512, "auto_keywords": 4}'></textarea>
+
+      <button type="button" id="btnUpload">上传并解析到知识库</button>
+      <button type="button" id="btnClearLog" class="secondary">清空日志</button>
+
+      <div id="uploadStatus" class="status" style="display:none;"></div>
+      <div id="uploadLog" class="log"></div>
+    </div>
+  </div>
+
+  <script>
+    // ========== 基础工具 ==========
+    const getEl = id => document.getElementById(id);
+    const els = {
+      baseUrl: getEl('baseUrl'),
+      apiKey: getEl('apiKey'),
+      datasetSelect: getEl('datasetSelect'),
+      btnFetchDatasets: getEl('btnFetchDatasets'),
+      newDatasetName: getEl('newDatasetName'),
+      newDatasetDesc: getEl('newDatasetDesc'),
+      newDatasetChunkMethod: getEl('newDatasetChunkMethod'),
+      newDatasetPermission: getEl('newDatasetPermission'),
+      btnCreateDataset: getEl('btnCreateDataset'),
+      datasetStatus: getEl('datasetStatus'),
+      targetDatasetId: getEl('targetDatasetId'),
+      fileInput: getEl('fileInput'),
+      batchTag: getEl('batchTag'),
+      parserConfig: getEl('parserConfig'),
+      btnUpload: getEl('btnUpload'),
+      btnClearLog: getEl('btnClearLog'),
+      uploadStatus: getEl('uploadStatus'),
+      uploadLog: getEl('uploadLog'),
+    };
+
+    function showStatus(el, text, type = 'info') {
+      el.textContent = text;
+      el.className = 'status ' + type;
+      el.style.display = 'block';
+    }
+    function hideStatus(el) { el.style.display = 'none'; }
+
+    function ensureBaseUrl() {
+      let base = (els.baseUrl.value || '').trim().replace(/\/+$/, '');
+      if (!base) {
+        showStatus(els.datasetStatus, '请先填写服务地址 Base URL', 'error');
+        return null;
+      }
+      if (!base.startsWith('http')) base = 'https://' + base;
+      return base;
+    }
+
+    function getJsonHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (els.apiKey.value || '').trim()
+      };
+    }
+
+    function appendLog(text, ok = true) {
+      const div = document.createElement('div');
+      div.className = ok ? 'log-entry-ok' : 'log-entry-err';
+      const ts = new Date().toLocaleTimeString();
+      div.textContent = `[${ts}] ${text}`;
+      els.uploadLog.appendChild(div);
+      els.uploadLog.scrollTop = els.uploadLog.scrollHeight;
+    }
+
+    // ========== 1. 知识库列表 & 创建 ==========
+    async function fetchDatasets() {
+      const base = ensureBaseUrl();
+      if (!base) return;
+      els.btnFetchDatasets.disabled = true;
+      hideStatus(els.datasetStatus);
+      try {
+        const res = await fetch(`${base}/api/v1/datasets`, {
+          headers: getJsonHeaders()
+        });
+        const data = await res.json();
+        if (data.code !== 0) throw new Error(data.message || '获取知识库失败');
+        const list = data.data || [];
+        els.datasetSelect.innerHTML = '<option value="">-- 选择目标知识库 --</option>';
+        list.forEach(ds => {
+          const opt = document.createElement('option');
+          opt.value = ds.id;
+          opt.textContent = `${ds.name} (${ds.document_count} docs)`;
+          els.datasetSelect.appendChild(opt);
+        });
+        showStatus(els.datasetStatus, `已加载 ${list.length} 个知识库`, 'success');
+      } catch (e) {
+        showStatus(els.datasetStatus, e.message, 'error');
+      } finally {
+        els.btnFetchDatasets.disabled = false;
+      }
+    }
+
+    els.btnFetchDatasets.addEventListener('click', fetchDatasets);
+
+    // 下拉框变化时，同步到 targetDatasetId
+    els.datasetSelect.addEventListener('change', () => {
+      els.targetDatasetId.value = els.datasetSelect.value || '';
+    });
+
+    async function createDataset() {
+      const base = ensureBaseUrl();
+      if (!base) return;
+      const name = (els.newDatasetName.value || '').trim();
+      if (!name) {
+        showStatus(els.datasetStatus, '新知识库名称不能为空', 'error');
+        return;
+      }
+      const desc = (els.newDatasetDesc.value || '').trim() || null;
+      const chunkMethod = (els.newDatasetChunkMethod.value || '').trim() || undefined;
+      const permission = els.newDatasetPermission.value || 'me';
+
+      els.btnCreateDataset.disabled = true;
+      hideStatus(els.datasetStatus);
+
+      const body = {
+        name,
+        description: desc,
+        permission,
+      };
+      if (chunkMethod) body.chunk_method = chunkMethod;
+
+      try {
+        const res = await fetch(`${base}/api/v1/datasets`, {
+          method: 'POST',
+          headers: getJsonHeaders(),
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.code !== 0) throw new Error(data.message || '创建知识库失败');
+        const ds = data.data;
+        showStatus(els.datasetStatus, `知识库创建成功：${ds.name}（ID: ${ds.id}）`, 'success');
+        // 自动选中到下拉框 & 目标 ID
+        await fetchDatasets();
+        els.datasetSelect.value = ds.id;
+        els.targetDatasetId.value = ds.id;
+      } catch (e) {
+        showStatus(els.datasetStatus, e.message, 'error');
+      } finally {
+        els.btnCreateDataset.disabled = false;
+      }
+    }
+
+    els.btnCreateDataset.addEventListener('click', createDataset);
+
+    // ========== 2. 上传文件到知识库 ==========
+    // 当前版本真实存在的接口：
+    // POST /api/v1/datasets/{dataset_id}/documents  (multipart/form-data, file)
+    // 上传后需要额外调用：
+    // POST /api/v1/datasets/{dataset_id}/chunks      (body: { document_ids: [...] })
+
+    async function uploadSingleFile(base, datasetId, file, extraMeta, parserCfgObj) {
+      const form = new FormData();
+      form.append('file', file);
+      // 如需支持子目录，可在这里加 parent_path
+      // form.append('parent_path', extraMeta && extraMeta.parent_path ? extraMeta.parent_path : '');
+
+      const url = `${base}/api/v1/datasets/${encodeURIComponent(datasetId)}/documents`;
+
+      const uploadRes = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + (els.apiKey.value || '').trim(),
+          // 注意：multipart/form-data 不要手动设置 Content-Type
+        },
+        body: form,
+      });
+
+      const uploadJson = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok || (uploadJson.code && uploadJson.code !== 0)) {
+        throw new Error(`文件 ${file.name} 上传失败：${uploadJson.message || uploadRes.statusText || '未知错误'}`);
+      }
+
+      const docs = uploadJson.data || [];
+      const docId = docs[0] && docs[0].id;
+      if (!docId) {
+        appendLog(`文件 ${file.name} 上传成功，但未返回文档 ID（这可能是版本差异，建议查看后台返回结构）`, true);
+      }
+      return { docId, raw: uploadJson };
+    }
+
+    async function triggerParse(base, datasetId, documentIds) {
+      if (!documentIds || !documentIds.length) {
+        throw new Error('未获取到可解析的文档 ID，无法触发解析');
+      }
+      const res = await fetch(`${base}/api/v1/datasets/${encodeURIComponent(datasetId)}/chunks`, {
+        method: 'POST',
+        headers: getJsonHeaders(),
+        body: JSON.stringify({ document_ids: documentIds }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || (json.code && json.code !== 0)) {
+        throw new Error(`触发解析失败：${json.message || res.statusText || '未知错误'}`);
+      }
+      return json;
+    }
+
+    els.btnUpload.addEventListener('click', async () => {
+      const base = ensureBaseUrl();
+      if (!base) return;
+
+      const datasetId = (els.targetDatasetId.value || '').trim();
+      if (!datasetId) {
+        showStatus(els.uploadStatus, '请先在上方选择或填写目标知识库 ID', 'error');
+        return;
+      }
+
+      const files = Array.from(els.fileInput.files || []);
+      if (!files.length) {
+        showStatus(els.uploadStatus, '请先选择至少一个文件', 'error');
+        return;
+      }
+
+      // parser_config 在当前 SDK 上传接口中暂未直接使用，这里仅做语法校验，方便以后扩展
+      let parserCfgObj = null;
+      const cfgText = (els.parserConfig.value || '').trim();
+      if (cfgText) {
+        try {
+          parserCfgObj = JSON.parse(cfgText);
+        } catch (e) {
+          showStatus(els.uploadStatus, 'parser_config 不是合法的 JSON：' + e.message, 'error');
+          return;
+        }
+      }
+
+      els.btnUpload.disabled = true;
+      hideStatus(els.uploadStatus);
+      appendLog(`开始向知识库 ${datasetId} 上传 ${files.length} 个文件...`);
+
+      const tag = (els.batchTag.value || '').trim() || null;
+      let successCount = 0;
+      const uploadedDocIds = [];
+
+      for (const f of files) {
+        try {
+          appendLog(`上传文件：${f.name}（${(f.size / 1024 / 1024).toFixed(2)} MB）`);
+          const r = await uploadSingleFile(base, datasetId, f, { tag }, parserCfgObj || {});
+          successCount += 1;
+          if (r.docId) uploadedDocIds.push(r.docId);
+          appendLog(`文件 ${f.name} 处理完成，doc_id=${r.docId || '未知'}`, true);
+        } catch (e) {
+          appendLog(e.message || String(e), false);
+        }
+      }
+
+      if (uploadedDocIds.length > 0) {
+        try {
+          appendLog(`开始触发解析，共 ${uploadedDocIds.length} 个文档...`);
+          await triggerParse(base, datasetId, uploadedDocIds);
+          appendLog('已提交解析任务，请稍后在知识库文档列表查看进度（RUNNING/DONE）。', true);
+        } catch (e) {
+          appendLog(e.message || String(e), false);
+        }
+      }
+
+      if (successCount === files.length) {
+        showStatus(els.uploadStatus, `全部 ${files.length} 个文件上传并绑定成功`, 'success');
+      } else if (successCount === 0) {
+        showStatus(els.uploadStatus, '所有文件均处理失败，请打开浏览器 Network 面板查看具体接口与报错', 'error');
+      } else {
+        showStatus(
+          els.uploadStatus,
+          `部分成功：${successCount}/${files.length} 个文件处理成功，请根据上方日志排查失败原因`,
+          'info'
+        );
+      }
+
+      els.btnUpload.disabled = false;
+    });
+
+    els.btnClearLog.addEventListener('click', () => {
+      els.uploadLog.innerHTML = '';
+      hideStatus(els.uploadStatus);
+    });
+
+    // 页面加载时，如果已经配置了 Base URL 和 API Key，则自动加载一次知识库列表
+    document.addEventListener('DOMContentLoaded', () => {
+      if ((els.baseUrl.value || '').trim() && (els.apiKey.value || '').trim()) {
+        fetchDatasets();
+      }
+    });
+  </script>
+</body>
+</html>

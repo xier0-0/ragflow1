@@ -41,6 +41,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template
       - ./entrypoint.sh:/ragflow/entrypoint.sh
+      # 魔视智能知识库检索系统：宿主机 ragflow-webui 挂载到容器，通过 /webui 访问
+      - ../ragflow-webui:/ragflow/ragflow-webui:ro
     env_file: .env
     networks:
       - ragflow
@@ -89,6 +91,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template
       - ./entrypoint.sh:/ragflow/entrypoint.sh
+      # 魔视智能知识库检索系统：宿主机 ragflow-webui 挂载到容器，通过 /webui 访问
+      - ../ragflow-webui:/ragflow/ragflow-webui:ro
     env_file: .env
     networks:
       - ragflow

@@ -91,12 +91,7 @@ export function LlmSettingFieldItems({
   const parameterOptions = Object.values(ModelVariableType).map((x) => ({
     label: t(camelCase(x)),
     value: x,
-  })) as { label: string; value: ModelVariableType | 'Custom' }[];
-
-  parameterOptions.push({
-    label: t(camelCase('Custom')),
-    value: 'Custom',
-  });
+  })) as { label: string; value: ModelVariableType }[];
   const checkParameterIsEqual = () => {
     const [
       parameter,
@@ -113,7 +108,7 @@ export function LlmSettingFieldItems({
       getFieldWithPrefix('presence_penalty'),
       getFieldWithPrefix('max_tokens'),
     ]);
-    if (parameter && parameter !== 'Custom') {
+    if (parameter) {
       const parameterValue =
         settledModelVariableMap[parameter as keyof typeof ModelVariableType];
       const parameterRealValue = {

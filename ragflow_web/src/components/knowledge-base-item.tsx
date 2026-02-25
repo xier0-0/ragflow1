@@ -134,8 +134,11 @@ export function KnowledgeBaseFormField({
       control={form.control}
       name="kb_ids"
       render={({ field }) => (
-        <FormItem>
-          <FormLabel tooltip={t('chat.knowledgeBasesTip')}>
+        <FormItem className="pt-4">
+          <FormLabel
+            tooltip={t('chat.knowledgeBasesTip')}
+            className="inline-flex items-center gap-1 whitespace-nowrap"
+          >
             {t('chat.knowledgeBases')}
           </FormLabel>
           <FormControl>

@@ -93,7 +93,7 @@ export default function DatasetSettings() {
         graphrag: {
           use_graphrag: true,
           entity_types: initialEntityTypes,
-          method: MethodValue.Light,
+          method: MethodValue.General,
         },
         metadata: {
           type: 'object',

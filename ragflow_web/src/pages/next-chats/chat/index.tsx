@@ -1,5 +1,3 @@
-import EmbedDialog from '@/components/embed-dialog';
-import { useShowEmbedModal } from '@/components/embed-dialog/use-show-embed-dialog';
 import { PageHeader } from '@/components/page-header';
 import {
   Breadcrumb,
@@ -11,7 +9,6 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SharedFrom } from '@/constants/chat';
 import { useNavigatePage } from '@/hooks/logic-hooks/navigate-hooks';
 import {
   useFetchConversationList,
@@ -23,7 +20,7 @@ import { IClientConversation } from '@/interfaces/database/chat';
 import { cn } from '@/lib/utils';
 import { useMount } from 'ahooks';
 import { isEmpty } from 'lodash';
-import { ArrowUpRight, LogOut, Send } from 'lucide-react';
+import { ArrowUpRight, LogOut } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
@@ -51,9 +48,6 @@ export default function Chat() {
   const { isDebugMode, switchDebugMode } = useSwitchDebugMode();
   const { removeChatBox, addChatBox, chatBoxIds, hasSingleChatBox } =
     useAddChatBox(isDebugMode);
-
-  const { showEmbedModal, hideEmbedModal, embedVisible, beta } =
-    useShowEmbedModal();
 
   const { conversationId, isNew } = useGetChatSearchParams();
 
@@ -113,23 +107,24 @@ export default function Chat() {
   return (
     <section className="h-full flex flex-col">
       <PageHeader>
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink onClick={navigateToChatList}>
-                {t('chat.chat')}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{data.name}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <Button onClick={showEmbedModal}>
-          <Send />
-          {t('common.embedIntoSite')}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={navigateToChatList}>
+            {t('common.back')}
+          </Button>
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={navigateToChatList}>
+                  {t('chat.chat')}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{data.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
       </PageHeader>
       <div className="flex flex-1 min-h-0 pb-9">
         <Sessions handleConversationCardClick={handleSessionClick}></Sessions>
@@ -159,16 +154,6 @@ export default function Chat() {
           </CardContent>
         </Card>
       </div>
-      {embedVisible && (
-        <EmbedDialog
-          visible={embedVisible}
-          hideModal={hideEmbedModal}
-          token={id!}
-          from={SharedFrom.Chat}
-          beta={beta}
-          isAgent={false}
-        ></EmbedDialog>
-      )}
     </section>
   );
 }

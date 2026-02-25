@@ -1,16 +1,11 @@
 // src/pages/next-search/search-setting.tsx
 
-import { AvatarUpload } from '@/components/avatar-upload';
 import {
   LlmSettingFieldItems,
   LlmSettingSchema,
 } from '@/components/llm-setting-items/next';
-import {
-  MetadataFilter,
-  MetadataFilterSchema,
-} from '@/components/metadata-filter';
+import { MetadataFilterSchema } from '@/components/metadata-filter';
 import { SimilaritySliderFormField } from '@/components/similarity-slider';
-import { Button } from '@/components/ui/button';
 import { SingleFormSlider } from '@/components/ui/dual-range-slider';
 import {
   Form,
@@ -26,9 +21,7 @@ import {
   MultiSelectOptionType,
 } from '@/components/ui/multi-select';
 import { RAGFlowSelect } from '@/components/ui/select';
-import { Spin } from '@/components/ui/spin';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request';
 import {
   useComposeLlmOptionsByModelTypes,
@@ -38,8 +31,8 @@ import { useFetchTenantInfo } from '@/hooks/use-user-setting-request';
 import { IKnowledge } from '@/interfaces/database/knowledge';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { debounce } from 'lodash';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -108,7 +101,7 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
   className,
   data,
 }) => {
-  const [width0, setWidth0] = useState('w-[440px]');
+  const [width0] = useState('w-[440px]');
   const { search_config } = data || {};
   const { llm_setting } = search_config || {};
   const formMethods = useForm<SearchSettingFormData>({
@@ -169,14 +162,8 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
   }, [resetForm]);
 
   useEffect(() => {
-    if (!open) {
-      setTimeout(() => {
-        setWidth0('w-0 hidden');
-      }, 500);
-    } else {
-      setWidth0('w-[440px]');
-    }
-  }, [open]);
+    setOpen(true);
+  }, [setOpen]);
 
   const { list: datasetListOrigin } = useFetchKnowledgeList();
 
@@ -244,46 +231,65 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
   const { updateSearch } = useUpdateSearch();
   const [formSubmitLoading, setFormSubmitLoading] = useState(false);
   const { data: systemSetting } = useFetchTenantInfo();
-  const onSubmit = async (
-    formData: IUpdateSearchProps & { tenant_id: string },
-  ) => {
-    try {
-      setFormSubmitLoading(true);
-      const { search_config, ...other_formdata } = formData;
-      const {
-        llm_setting,
-        vector_similarity_weight,
-        use_rerank,
-        rerank_id,
-        ...other_config
-      } = search_config;
-      const llmSetting = {
-        // llm_id: llm_setting.llm_id,
-        parameter: llm_setting.parameter,
-        temperature: llm_setting.temperature,
-        top_p: llm_setting.top_p,
-        frequency_penalty: llm_setting.frequency_penalty,
-        presence_penalty: llm_setting.presence_penalty,
-      } as IllmSettingProps;
+  const onSubmit = useCallback(
+    async (formData: IUpdateSearchProps & { tenant_id: string }) => {
+      try {
+        setFormSubmitLoading(true);
+        const { search_config, ...other_formdata } = formData;
+        const {
+          llm_setting,
+          vector_similarity_weight,
+          use_rerank,
+          rerank_id,
+          ...other_config
+        } = search_config;
+        const llmSetting = {
+          parameter: llm_setting.parameter,
+          temperature: llm_setting.temperature,
+          top_p: llm_setting.top_p,
+          frequency_penalty: llm_setting.frequency_penalty,
+          presence_penalty: llm_setting.presence_penalty,
+        } as IllmSettingProps;
 
-      await updateSearch({
-        ...other_formdata,
-        search_config: {
-          ...other_config,
-          chat_id: llm_setting.llm_id,
-          vector_similarity_weight: 1 - vector_similarity_weight,
-          rerank_id: use_rerank ? rerank_id : '',
-          llm_setting: { ...llmSetting },
-        },
-        tenant_id: systemSetting.tenant_id,
-      });
-      setOpen(false);
-    } catch (error) {
-      console.error('Failed to update search:', error);
-    } finally {
-      setFormSubmitLoading(false);
-    }
-  };
+        await updateSearch({
+          ...other_formdata,
+          search_config: {
+            ...other_config,
+            chat_id: llm_setting.llm_id,
+            vector_similarity_weight: 1 - vector_similarity_weight,
+            rerank_id: use_rerank ? rerank_id : '',
+            llm_setting: { ...llmSetting },
+          },
+          tenant_id: systemSetting.tenant_id,
+        });
+      } catch (error) {
+        console.error('Failed to update search:', error);
+      } finally {
+        setFormSubmitLoading(false);
+      }
+    },
+    [updateSearch, systemSetting],
+  );
+  useEffect(() => {
+    const debounced = debounce(
+      (values: SearchSettingFormData) =>
+        onSubmit(values as unknown as IUpdateSearchProps),
+      300,
+    );
+    let initialized = false;
+    const subscription = formMethods.watch((value) => {
+      if (!initialized) {
+        initialized = true;
+        return;
+      }
+      if (!formMethods.formState.isDirty) return;
+      debounced(value as SearchSettingFormData);
+    });
+    return () => {
+      subscription.unsubscribe();
+      debounced.cancel();
+    };
+  }, [formMethods, onSubmit]);
   return (
     <div
       className={cn(
@@ -299,9 +305,6 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
     >
       <div className="flex justify-between items-center text-base mb-8">
         <div className="text-text-primary">{t('search.searchSettings')}</div>
-        <div onClick={() => setOpen(false)}>
-          <X size={16} className="text-text-primary cursor-pointer" />
-        </div>
       </div>
       <div
         style={{ maxHeight: 'calc(100dvh - 270px)' }}
@@ -309,15 +312,7 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
       >
         <Form {...formMethods}>
           <form
-            onSubmit={formMethods.handleSubmit(
-              (data) => {
-                console.log('Form submitted with data:', data);
-                onSubmit(data as unknown as IUpdateSearchProps);
-              },
-              (errors) => {
-                console.log('Validation errors:', errors);
-              },
-            )}
+            onSubmit={(e) => e.preventDefault()}
             className="space-y-6"
           >
             {/* Name */}
@@ -337,47 +332,7 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
                 </FormItem>
               )}
             />
-            {/* Avatar */}
-            <FormField
-              control={formMethods.control}
-              name="avatar"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('search.avatar')}</FormLabel>
-                  <FormControl>
-                    <AvatarUpload {...field}></AvatarUpload>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Description */}
-            <FormField
-              control={formMethods.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('search.description')}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder={descriptionDefaultValue}
-                      {...field}
-                      onFocus={() => {
-                        if (field.value === descriptionDefaultValue) {
-                          field.onChange('');
-                        }
-                      }}
-                      onBlur={() => {
-                        if (field.value === '') {
-                          field.onChange(descriptionDefaultValue);
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* 隐藏头像与描述，保留默认值 */}
             {/* Datasets */}
             <FormField
               control={formMethods.control}
@@ -406,7 +361,7 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
                 </FormItem>
               )}
             />
-            <MetadataFilter prefix="search_config."></MetadataFilter>
+            {/* 隐藏元数据过滤，保留默认值 */}
             <SimilaritySliderFormField
               isTooltipShown
               similarityName="search_config.similarity_threshold"
@@ -570,28 +525,6 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
                 </FormItem>
               )}
             />
-            {/* Submit Button */}
-            <div className="flex justify-end"></div>
-            <div className="flex justify-end gap-2 absolute bottom-1 right-3 bg-bg-base w-[calc(100%-1em)] py-2">
-              <Button
-                type="reset"
-                variant={'transparent'}
-                onClick={() => {
-                  resetForm();
-                  setOpen(false);
-                }}
-              >
-                {t('search.cancelText')}
-              </Button>
-              <Button type="submit" disabled={formSubmitLoading}>
-                {formSubmitLoading && (
-                  <div className="size-4">
-                    <Spin size="small" />
-                  </div>
-                )}
-                {t('search.okText')}
-              </Button>
-            </div>
           </form>
         </Form>
       </div>

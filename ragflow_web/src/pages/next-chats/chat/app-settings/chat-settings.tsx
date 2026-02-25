@@ -115,8 +115,8 @@ export function ChatSettings({ hasSingleChatBox }: ChatSettingsProps) {
   // 默认展开设置面板
 
   return (
-    <section className="p-5 pb-6 w-[440px] flex flex-col">
-      <div className="flex justify-between items-center text-base pb-2">
+    <section className="p-5 pb-6 w-[440px] flex flex-col space-y-4">
+      <div className="flex justify-between items-center text-base pb-2 mb-2">
         {t('chat.chatSetting')}
       </div>
       <Form {...form}>

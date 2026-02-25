@@ -1,4 +1,3 @@
-import { useFetchTokenListBeforeOtherStep } from '@/components/embed-dialog/use-show-embed-dialog';
 import { PageHeader } from '@/components/page-header';
 import {
   Breadcrumb,
@@ -15,14 +14,12 @@ import {
   useFetchTenantInfo,
   useFetchUserInfo,
 } from '@/hooks/use-user-setting-request';
-import { Send, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ISearchAppDetailProps,
   useFetchSearchDetail,
 } from '../next-searches/hooks';
-import EmbedAppModal from './embed-app-modal';
 import { useCheckSettings } from './hooks';
 import './index.less';
 import SearchHome from './search-home';
@@ -33,10 +30,7 @@ export default function SearchPage() {
   const { navigateToSearchList } = useNavigatePage();
   const [isSearching, setIsSearching] = useState(false);
   const { data: SearchData } = useFetchSearchDetail();
-  const { beta, handleOperate } = useFetchTokenListBeforeOtherStep();
-
-  const [openSetting, setOpenSetting] = useState(false);
-  const [openEmbed, setOpenEmbed] = useState(false);
+  const [openSetting, setOpenSetting] = useState(true);
   const [searchText, setSearchText] = useState('');
   const { data: tenantInfo } = useFetchTenantInfo();
   const { data: userInfo } = useFetchUserInfo();
@@ -46,31 +40,30 @@ export default function SearchPage() {
     SearchData as ISearchAppDetailProps,
   );
   useEffect(() => {
-    setOpenSetting(checkOpenSetting);
+    setOpenSetting(true);
   }, [checkOpenSetting]);
-
-  useEffect(() => {
-    if (isSearching) {
-      setOpenSetting(false);
-    }
-  }, [isSearching]);
 
   return (
     <section>
       <PageHeader>
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink onClick={navigateToSearchList}>
-                {t('header.search')}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{SearchData?.name}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={navigateToSearchList}>
+            {t('common.back')}
+          </Button>
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={navigateToSearchList}>
+                  {t('header.search')}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{SearchData?.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
       </PageHeader>
       <div className="flex gap-3 w-full bg-bg-base">
         <div className="flex-1">
@@ -97,66 +90,14 @@ export default function SearchPage() {
             </div>
           )}
         </div>
-        {openSetting && (
-          <SearchSetting
-            className="mt-20 mr-2"
-            open={openSetting}
-            setOpen={setOpenSetting}
-            data={SearchData as ISearchAppDetailProps}
-          />
-        )}
-        {
-          <EmbedAppModal
-            open={openEmbed}
-            setOpen={setOpenEmbed}
-            url="/next-search/share"
-            token={SearchData?.id as string}
-            from={SharedFrom.Search}
-            tenantId={tenantId}
-            beta={beta}
-          />
-        }
-        {
-          // <EmbedDialog
-          //   visible={openEmbed}
-          //   hideModal={setOpenEmbed}
-          //   token={SearchData?.id as string}
-          //   from={SharedFrom.Search}
-          //   beta={beta}
-          //   isAgent={false}
-          // ></EmbedDialog>
-        }
+        <SearchSetting
+          className="mt-20 mr-2"
+          open={true}
+          setOpen={() => {}}
+          data={SearchData as ISearchAppDetailProps}
+        />
       </div>
-      <div className="absolute right-5 top-4 ">
-        <Button
-          className="bg-text-primary  text-bg-base border-b-accent-primary border-b-2"
-          onClick={() => {
-            handleOperate().then((res) => {
-              console.log(res, 'res');
-              if (res) {
-                setOpenEmbed(!openEmbed);
-              }
-            });
-          }}
-        >
-          <Send />
-          <div>{t('search.embedApp')}</div>
-        </Button>
-      </div>
-      {!isSearching && (
-        <div className="absolute left-5 bottom-12 ">
-          <Button
-            variant="transparent"
-            className="bg-bg-card"
-            onClick={() => setOpenSetting(!openSetting)}
-          >
-            <Settings className="text-text-secondary" />
-            <div className="text-text-secondary">
-              {t('search.searchSettings')}
-            </div>
-          </Button>
-        </div>
-      )}
+      {/* 移除嵌入按钮和设置开关，保持设置默认展开 */}
     </section>
   );
 }

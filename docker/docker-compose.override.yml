@@ -1,0 +1,10 @@
+services:
+  ragflow-cpu:
+    volumes:
+      - ./nginx/custom.conf:/etc/nginx/conf.d/custom.conf:ro
+      - ../ragflow_web/dist:/ragflow/custom-dist:ro
+
+  ragflow-gpu:
+    volumes:
+      - ./nginx/custom.conf:/etc/nginx/conf.d/custom.conf:ro
+      - ../ragflow_web/dist:/ragflow/custom-dist:ro

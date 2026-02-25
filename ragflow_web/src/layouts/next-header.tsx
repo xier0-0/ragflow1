@@ -1,4 +1,3 @@
-import { IconFontFill } from '@/components/icon-font';
 import { RAGFlowAvatar } from '@/components/ragflow-avatar';
 import { useTheme } from '@/components/theme-provider';
 import { Button } from '@/components/ui/button';
@@ -16,18 +15,7 @@ import { useNavigateWithFromState } from '@/hooks/route-hook';
 import { useFetchUserInfo } from '@/hooks/use-user-setting-request';
 import { Routes } from '@/routes';
 import { camelCase } from 'lodash';
-import {
-  ChevronDown,
-  CircleHelp,
-  Cpu,
-  File,
-  House,
-  Library,
-  MessageSquareText,
-  Moon,
-  Search,
-  Sun,
-} from 'lucide-react';
+import { ChevronDown, House, Library, MessageSquareText, Moon, Search, Sun } from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';

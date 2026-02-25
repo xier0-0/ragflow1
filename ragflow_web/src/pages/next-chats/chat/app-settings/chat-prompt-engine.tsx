@@ -24,35 +24,17 @@ export function ChatPromptEngine() {
 
   return (
     <div className="space-y-8">
-      <FormField
-        control={form.control}
-        name="prompt_config.system"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t('system')}</FormLabel>
-            <FormControl>
-              <Textarea
-                {...field}
-                rows={8}
-                placeholder={t('messagePlaceholder')}
-                className="overflow-y-auto"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {/* 系统提示词保持默认，不展示 */}
+      {/* 隐藏自由度/温度等模型参数在模型设置里处理 */}
+      {/* 隐藏相似度 TopN? 需求仅隐藏指定项：保留相似度阈值 */}
       <SimilaritySliderFormField isTooltipShown></SimilaritySliderFormField>
-      <TopNFormField></TopNFormField>
-      <SwitchFormField
-        name={'prompt_config.refine_multiturn'}
-        label={t('multiTurn')}
-        tooltip={t('multiTurnTip')}
-      ></SwitchFormField>
-      <UseKnowledgeGraphFormField name="prompt_config.use_kg"></UseKnowledgeGraphFormField>
+      {/* 隐藏 PageIndex/TopN */}
+      {/* <TopNFormField /> */}
+      {/* 隐藏多轮对话优化、知识图谱 */}
+      {/* <SwitchFormField name={'prompt_config.refine_multiturn'} .../> */}
+      {/* <UseKnowledgeGraphFormField name="prompt_config.use_kg" /> */}
       <RerankFormFields></RerankFormFields>
-      <CrossLanguageFormField></CrossLanguageFormField>
-      <DynamicVariableForm></DynamicVariableForm>
+      {/* 跨语言、变量保持默认，不展示 */}
     </div>
   );
 }

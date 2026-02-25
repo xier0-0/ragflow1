@@ -78,6 +78,24 @@ export function KnowledgeBaseFormField({
   const { datasetOptions, handleDatasetSelectChange } =
     useDisableDifferenceEmbeddingDataset();
 
+  useEffect(() => {
+    if (!form.getValues('kb_ids')?.length && datasetOptions.length > 0) {
+      const maxOption =
+        datasetOptions.reduce((prev, curr) => {
+          const prevSize =
+            (prev as any)?.doc_count ||
+            (prev as any)?.documents_count ||
+            0;
+          const currSize =
+            (curr as any)?.doc_count ||
+            (curr as any)?.documents_count ||
+            0;
+          return currSize > prevSize ? curr : prev;
+        }, datasetOptions[0]) ?? datasetOptions[0];
+      form.setValue('kb_ids', [maxOption.value as string]);
+    }
+  }, [datasetOptions, form]);
+
   const nextOptions = buildQueryVariableOptionsByShowVariable(showVariable)();
 
   const knowledgeOptions = datasetOptions;

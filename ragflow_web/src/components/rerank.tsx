@@ -1,6 +1,7 @@
 import { LlmModelType } from '@/constants/knowledge';
 import { useTranslate } from '@/hooks/common-hooks';
 import { useSelectLlmOptionsByModelType } from '@/hooks/use-llm-request';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { z } from 'zod';
 import { SelectWithSearch } from './originui/select-with-search';
@@ -27,7 +28,14 @@ function RerankFormField() {
   const form = useFormContext();
   const { t } = useTranslate('knowledgeDetails');
   const allOptions = useSelectLlmOptionsByModelType();
-  const options = allOptions[LlmModelType.Rerank];
+  const options = allOptions[LlmModelType.Rerank] || [];
+
+  useEffect(() => {
+    const firstValue = options?.[0]?.options?.[0]?.value;
+    if (!form.getValues(RerankId) && firstValue) {
+      form.setValue(RerankId, firstValue as string);
+    }
+  }, [form, options]);
 
   return (
     <FormField

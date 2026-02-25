@@ -164,7 +164,7 @@ const Login = () => {
             </div>
           </div>
           <h1 className="text-[36px] font-medium  text-center mb-2">
-            {t('title')}
+            欢迎登录魔视智能知识库检索系统
           </h1>
           {/* border border-accent-primary rounded-full */}
           {/* <div className="mt-4 px-6 py-1 text-sm font-medium text-cyan-600  hover:bg-cyan-50 transition-colors duration-200 border-glow relative overflow-hidden">

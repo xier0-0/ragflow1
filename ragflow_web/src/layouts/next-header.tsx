@@ -96,11 +96,17 @@ export function Header() {
   }, [navigate]);
 
   const activePathName = useMemo(() => {
-    const found = tagsData.find((tag) => pathname.startsWith(tag.path));
+    const base = import.meta.env.BASE_URL || '/';
+    const normalized = pathname.startsWith(base)
+      ? pathname.slice(base.endsWith('/') ? base.length - 1 : base.length)
+      : pathname;
+    const path = normalized.startsWith('/') ? normalized : `/${normalized}`;
+
+    const found = tagsData.find((tag) => path.startsWith(tag.path));
     if (found) return found.path;
     const fallbackKey = Object.keys(PathMap).find((x) => {
       const paths = PathMap[x as keyof typeof PathMap];
-      return paths.some((p) => pathname.includes(p));
+      return paths.some((p) => path.includes(p));
     });
     return fallbackKey || Routes.Root;
   }, [pathname, tagsData]);
@@ -110,13 +116,13 @@ export function Header() {
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
         <div className="flex items-center gap-3">
           <img
-            src={`${import.meta.env.BASE_URL}logo.png`}
+            src={`${import.meta.env.BASE_URL}logo.svg`}
             alt="logo"
             className="size-10 cursor-pointer"
             onClick={handleLogoClick}
           />
           <span className="text-lg font-semibold hidden sm:inline-flex">
-            魔视智能知识库检索系统
+            魔视智能
           </span>
         </div>
         <div className="flex-1 flex justify-center">

@@ -16,7 +16,7 @@ import { IReference } from '@/interfaces/database/chat';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 import { isEmpty } from 'lodash';
-import { BrainCircuit, Search, X } from 'lucide-react';
+import { BrainCircuit, Download, Search, X } from 'lucide-react';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ISearchAppDetailProps } from '../next-searches/hooks';
@@ -26,6 +26,7 @@ import './index.less';
 import MarkdownContent from './markdown-content';
 import MindMapDrawer from './mindmap-drawer';
 import RetrievalDocuments from './retrieval-documents';
+import { downloadDocument } from '@/utils/file-util';
 export default function SearchingView({
   setIsSearching,
   searchData,
@@ -230,14 +231,32 @@ export default function SearchingView({
                               </PopoverContent>
                             </Popover>
                           </div>
-                          <div
-                            className="flex gap-2 items-center text-xs text-text-secondary border p-1 rounded-lg w-fit mt-3"
-                            onClick={() =>
-                              clickDocumentButton(chunk.doc_id, chunk as any)
-                            }
-                          >
-                            <FileIcon name={chunk.docnm_kwd}></FileIcon>
-                            {chunk.docnm_kwd}
+                          <div className="flex gap-2 items-center text-xs text-text-secondary mt-3">
+                            <div
+                              className="flex gap-2 items-center border p-1 rounded-lg w-fit cursor-pointer"
+                              onClick={() =>
+                                clickDocumentButton(
+                                  chunk.doc_id,
+                                  chunk as any,
+                                )
+                              }
+                            >
+                              <FileIcon name={chunk.docnm_kwd}></FileIcon>
+                              {chunk.docnm_kwd}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() =>
+                                downloadDocument({
+                                  id: chunk.doc_id,
+                                  filename: chunk.docnm_kwd,
+                                })
+                              }
+                            >
+                              <Download className="size-4" />
+                            </Button>
                           </div>
                         </div>
                         {index < chunks.length - 1 && (

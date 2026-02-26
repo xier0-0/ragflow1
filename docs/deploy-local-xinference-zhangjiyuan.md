@@ -40,19 +40,19 @@ mkdir -p /mnt/cfs/zhangjiyuan/logs
 
 ## 二、安装 Python 环境 + Xinference + ModelScope（无 sudo）
 
-### 2.1 创建或选择 Conda 环境
+### 2.1 创建 Python 虚拟环境
 
-推荐为 Xinference 单独建一个环境（如果你有现成的也可以直接用）：
+推荐为 Xinference 单独建一个虚拟环境：
 
 ```bash
-# 创建环境（如已有可跳过）
-conda create -n xinference python=3.10 -y
+# 创建虚拟环境（Python 3.10+）
+python3 -m venv /mnt/cfs/zhangjiyuan/.venv_xinference
 
-# 激活环境
-conda activate xinference
+# 激活虚拟环境
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 ```
 
-后续所有命令都在 `conda activate xinference` 之后执行。
+后续所有命令都需要先执行 `source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate` 激活虚拟环境。
 
 ### 2.2 安装 Xinference 与 ModelScope（使用国内源）
 
@@ -123,9 +123,10 @@ EOF
 
 ### 3.3 执行下载脚本
 
-确保已激活 `conda activate xinference`：
+确保已激活虚拟环境：
 
 ```bash
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 cd /mnt/cfs/zhangjiyuan
 python download_models.py
 ```
@@ -162,9 +163,12 @@ mkdir -p "$XINFERENCE_HOME"
 
 ### 4.2 启动 Xinference 服务（前台）
 
-在**一个独立终端**中（且 `conda activate xinference`）执行：
+在**一个独立终端**中执行：
 
 ```bash
+# 激活虚拟环境
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
+
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 
 # 监听所有 IP，端口 9997（RAGFlow 文档默认示例）
@@ -185,6 +189,7 @@ xinference-local --host 0.0.0.0 --port 9997
 如果你希望 Xinference 服务在后台运行：
 
 ```bash
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 
 nohup xinference-local --host 0.0.0.0 --port 9997 \
@@ -209,9 +214,12 @@ tail -f /mnt/cfs/zhangjiyuan/logs/xinference.log
 
 ### 5.1 启动本地 LLM：Qwen3-14B（用 transformers/vLLM 引擎）
 
-在另一个终端（同样 `conda activate xinference`）中执行：
+在另一个终端中执行：
 
 ```bash
+# 激活虚拟环境
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
+
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 
 # LLM：Qwen3-14B
@@ -231,6 +239,7 @@ xinference launch \
 ### 5.2 启动 Embedding 模型：Qwen3-Embedding-4B
 
 ```bash
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 
 xinference launch \
@@ -257,6 +266,7 @@ ls /mnt/cfs/zhangjiyuan/models/Qwen3-Reranker-4B-GGUF
 然后执行：
 
 ```bash
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 
 xinference launch \
@@ -422,16 +432,17 @@ curl http://host.docker.internal:9997/v1/models
 
 ### 8.5 `xinference launch` 找不到命令
 
-确保已激活 conda 环境：
+确保已激活虚拟环境：
 
 ```bash
-conda activate xinference
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 which xinference
 ```
 
 如果 `which xinference` 找不到，重新安装：
 
 ```bash
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 pip install "xinference[all]" -i https://mirrors.aliyun.com/pypi/simple/
 ```
 
@@ -458,9 +469,11 @@ pip install "xinference[all]" -i https://mirrors.aliyun.com/pypi/simple/
 # 创建目录
 mkdir -p /mnt/cfs/zhangjiyuan/{xinference,modelscope_cache,models,logs}
 
-# 创建 conda 环境
-conda create -n xinference python=3.10 -y
-conda activate xinference
+# 创建 Python 虚拟环境
+python3 -m venv /mnt/cfs/zhangjiyuan/.venv_xinference
+
+# 激活虚拟环境
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 
 # 安装依赖
 pip install "xinference[all]" "modelscope" -i https://mirrors.aliyun.com/pypi/simple/
@@ -482,10 +495,12 @@ python download_models.py
 
 ```bash
 # 终端 1：启动 Xinference
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 xinference-local --host 0.0.0.0 --port 9997
 
 # 终端 2：启动三个模型
+source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 
 # LLM

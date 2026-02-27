@@ -184,23 +184,56 @@ xinference-local --host 0.0.0.0 --port 9997
 
 > 你也可以用 `nohup ... &` 后台跑，这里为了方便调试建议先前台运行。
 
-### 4.3 后台运行（可选）
+### 4.3 使用 tmux 后台运行（推荐）
 
-如果你希望 Xinference 服务在后台运行：
+`tmux` 是一个终端复用器，可以在一个 SSH 会话里开多个「子终端」，并在断线后继续在后台运行，非常适合长期跑服务。
+
+#### 4.3.1 第一次启动 Xinference（新建 tmux 会话）
 
 ```bash
+# 1）新建一个名为 xinference 的 tmux 会话
+tmux new -s xinference
+
+# 2）在 tmux 里激活虚拟环境并启动服务
 source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
 
-nohup xinference-local --host 0.0.0.0 --port 9997 \
-  > /mnt/cfs/zhangjiyuan/logs/xinference.log 2>&1 &
+xinference-local --host 0.0.0.0 --port 9997
 ```
 
-以后查看日志可以用：
+此时 Xinference 会在 tmux 会话里前台运行。
+
+#### 4.3.2 挂起（detach）tmux，让服务在后台继续跑
+
+在 tmux 会话中按快捷键：
+
+- `Ctrl + B`，然后按 `D`（大写/小写 D 都可以）
+
+你会回到普通终端提示符，而 `xinference-local` 依然在后台的 tmux 会话里运行。
+
+#### 4.3.3 重新进入 tmux 查看日志 / 停止服务
+
+查看当前 tmux 会话：
 
 ```bash
-tail -f /mnt/cfs/zhangjiyuan/logs/xinference.log
+tmux ls
 ```
+
+重新进入 `xinference` 会话：
+
+```bash
+tmux attach -t xinference
+```
+
+在里面按 `Ctrl + C` 可以停止 `xinference-local` 服务。  
+需要彻底删除会话时：
+
+```bash
+tmux kill-session -t xinference
+```
+
+> **提示**：后面挂载模型（第 5 节的 `xinference launch ...` 命令）可以在**普通终端**里执行，只要 Xinference 服务（tmux 里的 `xinference-local`）是运行状态即可。
+
 
 ---
 

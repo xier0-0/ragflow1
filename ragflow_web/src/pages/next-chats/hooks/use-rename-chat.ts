@@ -38,7 +38,7 @@ export const useRenameChat = () => {
       },
       llm_id: tenantInfo.data.llm_id,
       llm_setting: {},
-      similarity_threshold: 0.2,
+      similarity_threshold: 0.1,
       vector_similarity_weight: 0.3,
       top_n: 8,
     }),

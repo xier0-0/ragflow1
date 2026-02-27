@@ -508,8 +508,8 @@ python3 -m venv /mnt/cfs/zhangjiyuan/.venv_xinference
 # 激活虚拟环境
 source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
 
-# 安装依赖
-pip install "xinference[all]" "modelscope" -i https://mirrors.aliyun.com/pypi/simple/
+# 安装核心依赖（CPU 版 + transformers 引擎）
+pip install xinference modelscope -i https://mirrors.aliyun.com/pypi/simple/
 
 # 设置环境变量
 export MODELSCOPE_CACHE=/mnt/cfs/zhangjiyuan/modelscope_cache
@@ -568,3 +568,113 @@ curl http://127.0.0.1:9997/v1/models
 ---
 
 文档完成。按此流程执行即可完成 Xinference + ModelScope 的本地模型部署，并接入 RAGFlow。
+
+---
+
+## 十一、Xinference 服务与模型管理速览
+
+这一节总结日常会用到的 **服务管理** 和 **模型管理** 命令，方便你当作「备忘录」查阅。
+
+### 11.1 服务管理（配合 tmux）
+
+- **启动服务（tmux 后台）**：
+
+  ```bash
+  tmux new -s xinference
+  source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
+  export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
+  xinference-local --host 0.0.0.0 --port 9997
+  ```
+
+  然后在 tmux 里按 `Ctrl + B`，再按 `D`，挂起会话，让服务在后台跑。
+
+- **查看 tmux 会话**：
+
+  ```bash
+  tmux ls
+  ```
+
+- **重新进入 Xinference 会话**：
+
+  ```bash
+  tmux attach -t xinference
+  ```
+
+- **停止服务**：在 tmux 里按 `Ctrl + C`，或直接杀会话：
+
+  ```bash
+  tmux kill-session -t xinference
+  ```
+
+- **检查服务是否存活**：
+
+  ```bash
+  curl http://127.0.0.1:9997/v1/models
+  ```
+
+  能返回 JSON（哪怕 `data` 为空数组）就说明 Xinference 服务是好的。
+
+### 11.2 模型管理（加载 / 查看 / 卸载）
+
+> 前置：每次在新终端操作前，先激活虚拟环境并设置 `XINFERENCE_HOME`：
+>
+> ```bash
+> source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
+> export XINFERENCE_HOME=/mnt/cfs/zhangjiyuan/xinference
+> ```
+
+- **加载（挂载）模型**：使用 `xinference launch`，文档第 5 节已经给出三个模型的完整示例，例如：
+
+  ```bash
+  xinference launch \
+    --endpoint http://127.0.0.1:9997 \
+    --model-name qwen3-embedding-4b-local \
+    --model-type embedding \
+    --model-engine transformers \
+    --model-path /mnt/cfs/zhangjiyuan/models/Qwen3-Embedding-4B \
+    --size-in-billions 4
+  ```
+
+- **查看当前已加载模型列表**：
+
+  ```bash
+  curl http://127.0.0.1:9997/v1/models
+  ```
+
+  返回的 `data` 数组里会列出 `id` / `model_name` / `model_type` 等信息。
+
+- **卸载（终止）某个模型实例**：
+
+  每个运行中的模型都会有一个 `model_uid`，默认等于你在 `--model-name` 里指定的名字。要卸载时，用：
+
+  ```bash
+  xinference terminate \
+    --endpoint http://127.0.0.1:9997 \
+    --model-uid qwen3-embedding-4b-local
+  ```
+
+  换成你实际想停掉的模型名即可（例如 `qwen3-14b-chat-local`、`qwen3-reranker-4b-local`）。
+
+### 11.3 按需补充加速后端
+
+当前文档默认用的是 **CPU + transformers 引擎**，如果后面你觉得需要性能，可以在同一个虚拟环境里「按需加插件」：
+
+- **给 LLM 补 vLLM GPU 加速**：
+
+  ```bash
+  source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
+  pip install "xinference[vllm]" -i https://mirrors.aliyun.com/pypi/simple/
+  ```
+
+  然后把 LLM 的 `--model-engine transformers` 改为 `--model-engine vllm`。
+
+- **给 GGUF 模型补 llama.cpp 引擎（用于 rerank）**：
+
+  ```bash
+  source /mnt/cfs/zhangjiyuan/.venv_xinference/bin/activate
+  pip install "xinference[llama-cpp]" -i https://mirrors.aliyun.com/pypi/simple/
+  ```
+
+  这样第 5.3 节的 `--model-engine llama.cpp` 才能正常工作。
+
+你可以先按文档跑通 **CPU + transformers 版本**，确认功能都 OK，再视需要补这些加速后端。*** End Patch***} >>

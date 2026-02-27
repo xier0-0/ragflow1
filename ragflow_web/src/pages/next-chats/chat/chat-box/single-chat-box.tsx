@@ -112,7 +112,8 @@ export function SingleChatBox({
         sendDisabled={sendDisabled}
         sendLoading={sendLoading}
         value={value}
-        resize="vertical"
+        // 禁用手动拖拽放大，避免与自动滚动冲突
+        resize="none"
         onInputChange={handleInputChange}
         onPressEnter={handlePressEnter}
         conversationId={conversationId}

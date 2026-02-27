@@ -57,7 +57,7 @@ export function ChatSettings({ hasSingleChatBox }: ChatSettingsProps) {
         toc_enhance: false,
       },
       top_n: 8,
-      similarity_threshold: 0.2,
+      similarity_threshold: 0.1,
       vector_similarity_weight: 0.2,
       top_k: 1024,
       meta_data_filter: {

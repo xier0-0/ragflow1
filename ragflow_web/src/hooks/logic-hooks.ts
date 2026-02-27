@@ -386,7 +386,10 @@ export const useScrollToBottom = (
   const checkIfUserAtBottom = useCallback(() => {
     if (!containerRef?.current) return true;
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    return Math.abs(scrollTop + clientHeight - scrollHeight) < 25;
+    // 当内容高度不超出容器时，认为在底部
+    if (scrollHeight <= clientHeight) return true;
+    // 只在距离底部很近时才认为“在底部”，避免用户稍微上滑就被强制拉回去
+    return scrollHeight - (scrollTop + clientHeight) < 5;
   }, [containerRef]);
 
   useEffect(() => {
@@ -417,11 +420,9 @@ export const useScrollToBottom = (
     if (!messages) return;
     if (!containerRef?.current) return;
     requestAnimationFrame(() => {
-      setTimeout(() => {
-        if (isAtBottomRef.current) {
-          scrollToBottom();
-        }
-      }, 100);
+      if (isAtBottomRef.current) {
+        scrollToBottom();
+      }
     });
   }, [messages, containerRef, scrollToBottom]);
 

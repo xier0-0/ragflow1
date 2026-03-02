@@ -16,11 +16,9 @@ import { useFetchUserInfo } from '@/hooks/use-user-setting-request';
 import { Routes } from '@/routes';
 import { camelCase } from 'lodash';
 import { ChevronDown, House, Library, MessageSquareText, Moon, Search, Sun } from 'lucide-react';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
-import { BellButton } from './bell-button';
-
 const PathMap = {
   [Routes.Root]: [Routes.Root],
   [Routes.Datasets]: [Routes.Datasets],
@@ -91,10 +89,6 @@ export function Header() {
     navigate(path as Routes);
   };
 
-  const handleLogoClick = useCallback(() => {
-    navigate(Routes.Root);
-  }, [navigate]);
-
   const activePathName = useMemo(() => {
     const base = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '') || '/';
     const normalized =
@@ -120,31 +114,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 bg-bg-base/80 backdrop-blur border-b border-border-default">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
-        <div className="flex items-center gap-3">
-          <img
-            src={`${import.meta.env.BASE_URL}logo.svg`}
-            alt="logo"
-            className="size-10 cursor-pointer shrink-0"
-            onClick={handleLogoClick}
-          />
-          <span className="text-lg font-semibold hidden sm:inline-flex">
-            魔视智能
-          </span>
-        </div>
-        <div className="flex-1 flex justify-center">
-          <Segmented
-            key={activePathName}
-            rounded="xxxl"
-            sizeType="xl"
-            buttonSize="xl"
-            options={options}
-            value={activePathName}
-            onChange={handleChange}
-            className="bg-bg-card px-1 py-1 rounded-full shadow-sm"
-            activeClassName="text-bg-base bg-metallic-gradient border-none shadow-sm"
-          ></Segmented>
-        </div>
-        <div className="flex items-center gap-4 text-text-badge">
+        {/* 左侧：语言、深色模式、头像 */}
+        <div className="flex items-center gap-4 text-text-badge shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger>
               <div className="flex items-center gap-1">
@@ -163,7 +134,6 @@ export function Header() {
           <Button variant={'ghost'} onClick={onThemeClick} className="h-9 w-9 p-0">
             {theme === 'light' ? <Sun /> : <Moon />}
           </Button>
-          <BellButton></BellButton>
           <div className="relative">
             <RAGFlowAvatar
               name={nickname}
@@ -174,6 +144,26 @@ export function Header() {
             ></RAGFlowAvatar>
           </div>
         </div>
+        {/* 中间偏左：魔视智能 */}
+        <span className="text-lg font-semibold hidden sm:inline-flex">
+          魔视智能
+        </span>
+        {/* 中间：导航栏 */}
+        <div className="flex-1 flex justify-center">
+          <Segmented
+            key={activePathName}
+            rounded="xxxl"
+            sizeType="xl"
+            buttonSize="xl"
+            options={options}
+            value={activePathName}
+            onChange={handleChange}
+            className="bg-bg-card px-1 py-1 rounded-full shadow-sm"
+            activeClassName="text-bg-base bg-metallic-gradient border-none shadow-sm"
+          ></Segmented>
+        </div>
+        {/* 右侧无内容 */}
+        <div className="w-0 shrink-0" aria-hidden />
       </div>
     </header>
   );

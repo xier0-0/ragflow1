@@ -59,6 +59,10 @@ export const RAGFlowAvatar = memo(
     const fallbackRef = useRef<HTMLElement>(null);
     const [fontSize, setFontSize] = useState('0.875rem');
 
+    // 个人头像默认使用 logo 图
+    const effectiveAvatar =
+      avatar || (isPerson ? `${import.meta.env.BASE_URL}logo.png` : undefined);
+
     // Calculate font size
     const calculateFontSize = () => {
       if (fallbackRef.current) {
@@ -93,7 +97,7 @@ export const RAGFlowAvatar = memo(
         {...props}
         className={cn(className, { 'rounded-md': !isPerson })}
       >
-        <AvatarImage src={avatar} />
+        <AvatarImage src={effectiveAvatar} />
         <AvatarFallback
           ref={(node) => {
             fallbackRef.current = node;

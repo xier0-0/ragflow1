@@ -40,6 +40,9 @@ export function useDisableDifferenceEmbeddingDataset() {
             </div>
           ),
           value: item.id,
+          // 透传文档数量信息，便于“默认选最大知识库”逻辑使用
+          doc_count: (item as any).doc_count,
+          documents_count: (item as any).documents_count,
           disabled:
             item.embd_id !== datasetSelectEmbedId &&
             datasetSelectEmbedId !== '',
@@ -79,6 +82,7 @@ export function KnowledgeBaseFormField({
     useDisableDifferenceEmbeddingDataset();
 
   useEffect(() => {
+    // 当当前对话未绑定任何知识库时，默认选择文档数量最多的知识库
     if (!form.getValues('kb_ids')?.length && datasetOptions.length > 0) {
       const maxOption =
         datasetOptions.reduce((prev, curr) => {

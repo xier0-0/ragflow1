@@ -3,7 +3,7 @@
 本机已部署了 3 个基于本地模型文件的 HTTP 服务，其他同事只需在同一内网环境下，通过 HTTP 接口调用即可，无需关心底层模型和 tmux 细节。
 
 - 服务器 IP：**10.24.2.10**
-- 所有接口均为 **无鉴权**（仅限内网使用），通过 HTTP 调用。
+- 所有接口仅限内网使用，通过 HTTP 调用。
 
 ## 总览
 
@@ -56,9 +56,6 @@ curl -s -X POST http://10.24.2.10:20089/v1/chat/completions \
   }'
 ```
 
-### 1.3 返回示例（截断）
-
-
 **说明**：该 LLM 服务目前运行在 CPU 上，响应速度相对云端模型会慢一些，请控制好 `max_tokens` 和上下文长度。
 
 ---
@@ -97,8 +94,6 @@ curl -s -X POST http://10.24.2.10:9100/v1/embeddings \
     ]
   }'
 ```
-
-
 
 **说明**：
 
@@ -171,8 +166,10 @@ curl -s -X POST http://10.24.2.10:9300/v1/rerank \
 - `score` 越大，代表越相关。
 - 返回的 `index` 对应原始 `documents` 中的下标。
 
-**说明**：  
-`bge-reranker-base` 是 cross-encoder，计算量比 Embedding 大，建议控制每次 rerank 的候选文档数量（例如 top-K 召回 20～50 再重排）。
+**说明**：
+
+- `bge-reranker-base` 是 cross-encoder，计算量比 Embedding 大。
+- 建议控制每次 rerank 的候选文档数量（例如先用向量检索 top-K 召回 20～50，再用本接口重排）。
 
 ---
 

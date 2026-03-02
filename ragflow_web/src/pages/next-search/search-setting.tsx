@@ -63,6 +63,7 @@ const SearchSettingFormSchema = z
     description: z.string().optional(),
     search_config: z.object({
       kb_ids: z.array(z.string()).min(1, 'At least one dataset is required'),
+      doc_ids: z.array(z.string()).optional(),
       vector_similarity_weight: z.number().min(0).max(1),
       web_search: z.boolean(),
       similarity_threshold: z.number(),
@@ -71,9 +72,13 @@ const SearchSettingFormSchema = z
       use_rerank: z.boolean(),
       top_k: z.number(),
       summary: z.boolean(),
+      chat_id: z.string().optional(),
       llm_setting: z.object(LlmSettingSchema),
       related_search: z.boolean(),
       query_mindmap: z.boolean(),
+      chat_settingcross_languages: z.array(z.string()).optional(),
+      highlight: z.boolean().optional(),
+      keyword: z.boolean().optional(),
       ...MetadataFilterSchema,
     }),
   })
@@ -177,12 +182,41 @@ const SearchSetting: React.FC<SearchSettingProps> = ({
           </div>
         ),
         value: item.id,
+        // 透传文档数量信息，便于后续按“最大知识库”做默认选择
+        doc_count: (item as any).doc_count,
+        documents_count: (item as any).documents_count,
         disabled:
           item.embd_id !== datasetSelectEmbdId && datasetSelectEmbdId !== '',
       };
     });
     setDatasetList(datasetListMap);
   }, [datasetListOrigin, datasetSelectEmbdId]);
+
+  // 创建检索后，若未手动选择知识库，则默认选文档数量最多的知识库
+  useEffect(() => {
+    if (
+      (!search_config?.kb_ids || search_config.kb_ids.length === 0) &&
+      datasetListOrigin.length > 0
+    ) {
+      const maxKb =
+        datasetListOrigin.reduce((prev, curr) => {
+          const prevSize =
+            (prev as any)?.doc_count ||
+            (prev as any)?.documents_count ||
+            0;
+          const currSize =
+            (curr as any)?.doc_count ||
+            (curr as any)?.documents_count ||
+            0;
+          return currSize > prevSize ? curr : prev;
+        }, datasetListOrigin[0]) ?? datasetListOrigin[0];
+
+      if (maxKb) {
+        formMethods.setValue('search_config.kb_ids', [maxKb.id as string]);
+        setDatasetSelectEmbdId(maxKb.embd_id ?? '');
+      }
+    }
+  }, [search_config?.kb_ids, datasetListOrigin, formMethods]);
 
   const handleDatasetSelectChange = (
     value: string[],

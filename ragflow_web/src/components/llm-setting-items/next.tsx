@@ -62,6 +62,8 @@ export const LlmSettingSchema = {
   ...LLMIdFormField,
   ...LlmSettingFieldSchema,
   ...LlmSettingEnabledSchema,
+  // 预设风格参数（如 Balance / Creative / Precise / Custom）
+  parameter: z.string().optional(),
 };
 
 export function LlmSettingFieldItems({

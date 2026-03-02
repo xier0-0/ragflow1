@@ -8,17 +8,17 @@
 
 ## 一、环境与鉴权
 
-- **服务地址**：`http://127.0.0.1:20088`
-- **API Key**：`ragflow-nPMhN_qYo92Yvd7rpecTodOzkU5emBEYRj0kyIo8da4`
+- **服务地址**：`http://10.24.2.10:20088`
+- **API Key**：`ragflow-Jn5gbk4fDLzoQqPZU3gJxi3I_-R1gies-j2yvJNq9iI`
 - **鉴权方式**：请求头中携带 `Authorization: Bearer <API_KEY>`
 
 建议在终端先设置变量，后续示例均基于此。**默认知识库 ID** 用于快速测试（如你本机已有该知识库可直接用，否则用「2.2 创建知识库」返回的 id 替换）：
 
 ```bash
-export RAGFLOW_HOST="http://127.0.0.1:20088"
-export RAGFLOW_API_KEY="ragflow-nPMhN_qYo92Yvd7rpecTodOzkU5emBEYRj0kyIo8da4"
+export RAGFLOW_HOST="http://10.24.2.10:20088"
+export RAGFLOW_API_KEY="ragflow-Jn5gbk4fDLzoQqPZU3gJxi3I_-R1gies-j2yvJNq9iI"
 # 默认知识库 id，便于快速测试（无则先创建知识库或从列表接口获取）
-export DATASET_ID="75ad2f5c15e911f1a394d51da451b596"
+export DATASET_ID="6489d2fa15ff11f1a4ca6d1b2419fe40"
 ```
 
 **通用请求头**（下文示例中若未单独写出，即默认使用）：
@@ -28,7 +28,7 @@ export DATASET_ID="75ad2f5c15e911f1a394d51da451b596"
 
 **错误码**（摘自官方文档）：400  Bad Request；401  Unauthorized；403  Forbidden；404  Not Found；500  Internal Server Error；1001  Invalid Chunk ID；1002  Chunk Update Failed。
 
-**关于前端页面**：本说明以命令行（API）操作为主。项目同时提供 **Web 前端**，在浏览器打开上述服务地址（如 `http://127.0.0.1:20088`，与 API 同源）即可访问管理界面。完成下列接口操作后，可到前端对应页面查看是否有新增、变更或状态变化，便于核对结果。
+**关于前端页面**：本说明以命令行（API）操作为主。项目同时提供 **Web 前端**，在浏览器打开上述服务地址（如 `http://10.24.2.10:20088`，与 API 同源）即可访问管理界面。完成下列接口操作后，可到前端对应页面查看是否有新增、变更或状态变化，便于核对结果。
 
 ---
 
@@ -72,7 +72,7 @@ curl -s -X POST \
   -d '{"name": "my-kb"}'
 ```
 
-成功时返回 `data` 中包含新知识库的 `id`，后续操作需用到该 `id`。可在前端 **「知识库」** 列表页查看是否出现新知识库。
+成功时返回 `data` 中包含新知识库的 `id`，后续操作需用到该 `id`，建议立刻通过 `export DATASET_ID="<该 id>"` 进行配置，方便后续示例直接复用。可在前端 **「知识库」** 列表页查看是否出现新知识库。
 
 ---
 
